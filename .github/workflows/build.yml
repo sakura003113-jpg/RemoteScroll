@@ -7,9 +7,6 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: RemoteScroll
     steps:
       - uses: actions/checkout@v5
 
@@ -24,6 +21,14 @@ jobs:
 
       - name: Build
         run: |
+          SETTINGS=$(find . -name "settings.gradle*" -not -path "./.git/*" | head -1)
+          if [ -z "$SETTINGS" ]; then
+            echo "No Android project found. Files in repo:"
+            find . -not -path "./.git/*" | head -100
+            exit 1
+          fi
+          cd "$(dirname "$SETTINGS")"
+          echo "Building in: $(pwd)"
           if [ -f gradle/wrapper/gradle-wrapper.jar ]; then
             chmod +x gradlew
             ./gradlew assembleDebug
@@ -34,4 +39,4 @@ jobs:
       - uses: actions/upload-artifact@v4
         with:
           name: app-debug
-          path: RemoteScroll/app/build/outputs/apk/debug/*.apk
+          path: "**/app/build/outputs/apk/debug/*.apk"
